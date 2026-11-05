@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Churn Prediction</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 30px auto;
+            background: white;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 5px 25px #00000010;
+        }
+
+        h1 {
+            color: #1d4ed8;
+            margin-bottom: 12px;
+        }
+
+        .description {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin: 18px 0 8px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 14px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #eff6ff;
+            line-height: 1.8;
+        }
+
+        .result h2 {
+            margin-bottom: 8px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 22px;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .note {
+            margin-top: 20px;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Customer Churn Prediction</h1>
+
+        <p class="description">
+            Enter customer purchase information to estimate
+            the likelihood of churn using the trained ML model.
+        </p>
+
+        <form method="POST" action="/predict">
+            <label for="recency">Recency (days since last purchase)</label>
+            <input
+                type="number"
+                id="recency"
+                name="recency"
+                min="0"
+                max="10000"
+                value="{{ recency if recency is not none else 30 }}"
+                required
+            >
+
+            <label for="frequency">Frequency (number of completed orders)</label>
+            <input
+                type="number"
+                id="frequency"
+                name="frequency"
+                min="0"
+                max="100000"
+                value="{{ frequency if frequency is not none else 5 }}"
+                required
+            >
+
+            <label for="monetary">Total Spending (₹)</label>
+            <input
+                type="number"
+                id="monetary"
+                name="monetary"
+                min="0"
+                max="1000000000"
+                step="0.01"
+                value="{{ monetary if monetary is not none else 5000 }}"
+                required
+            >
+
+            <button type="submit">Predict Churn Risk</button>
+        </form>
+
+        {% if prediction is not none %}
+        <div class="result">
+            <h2>Prediction Result</h2>
+
+            <p>
+                <strong>Estimated churn probability:</strong>
+                {{ "%.2f"|format(probability) }}%
+            </p>
+
+            <p>
+                <strong>Model classification:</strong>
+                {{ prediction }}
+            </p>
+        </div>
+        {% endif %}
+
+        <p class="note">
+            This is a demonstration model trained on a small,
+            illustrative dataset. Predictions are not validated
+            estimates of real customer behavior.
+        </p>
+
+        <a class="back" href="/">← Back to Dashboard</a>
+    </div>
+</body>
+</html>

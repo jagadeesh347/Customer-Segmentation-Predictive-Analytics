@@ -1,0 +1,10 @@
+customer_code,Rule-Based,K-Means
+C001,Low-Activity Customers,High-Value Customers
+C002,Regular Customers,Low-Activity Customers
+C003,Regular Customers,Low-Activity Customers
+C004,Low-Activity Customers,Low-Activity Customers
+C005,Regular Customers,High-Value Customers
+C006,Low-Activity Customers,Low-Activity Customers
+C008,Regular Customers,Low-Activity Customers
+C009,Regular Customers,Low-Activity Customers
+Sunny,Regular Customers,Regular Customers

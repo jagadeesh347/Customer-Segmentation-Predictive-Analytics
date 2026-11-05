@@ -1,0 +1,585 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        :root {
+            --primary: #4f46e5;
+            --text: #172033;
+            --muted: #64748b;
+            --border: #e5eaf3;
+            --surface: #ffffff;
+            --background: #f5f7fc;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.55;
+        }
+
+        header {
+            color: white;
+            padding: 34px 5%;
+            background: linear-gradient(120deg, #111c44, #3730a3 65%, #6366f1);
+            box-shadow: 0 8px 28px #202b5530;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: clamp(26px, 3vw, 36px);
+        }
+
+        header p { margin: 0; color: #dbe4ff; }
+
+        main {
+            max-width: 1450px;
+            margin: auto;
+            padding: 28px;
+        }
+
+        h2 {
+            margin: 34px 0 16px;
+            font-size: 22px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            min-width: 0;
+            background: var(--surface);
+            padding: 23px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 5px 20px #17255408;
+        }
+
+        .metric {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .number {
+            color: #242b59;
+            font-size: clamp(25px, 2.5vw, 32px);
+            font-weight: 750;
+            margin-top: 10px;
+            overflow-wrap: anywhere;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .chart-card { min-height: 330px; }
+        .chart-card h3 { margin-top: 0; font-size: 16px; }
+        .chart-card canvas { max-height: 270px; }
+
+        .segment-card { border-top: 4px solid var(--primary); }
+        .segment-card h3 { margin-top: 0; color: #27275e; }
+        .segment-card p { color: #475569; line-height: 1.6; }
+        .segment-stat { margin: 12px 0; color: #64748b; font-size: 14px; }
+        .segment-stat strong { color: #172033; }
+
+        .recommendation {
+            margin-top: 18px;
+            padding: 15px;
+            background: #eef2ff;
+            border: 1px solid #e0e7ff;
+            border-radius: 11px;
+        }
+
+        .recommendation strong { color: #3730a3; }
+        .recommendation p { margin-bottom: 0; }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 11px;
+            margin: 18px 0;
+        }
+
+        input, select, button, .button {
+            min-height: 43px;
+            padding: 11px 14px;
+            border-radius: 9px;
+            border: 1px solid #d7deeb;
+            font: inherit;
+            font-size: 14px;
+        }
+
+        input, select { background: white; color: var(--text); }
+
+        button, .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid var(--primary);
+            font-weight: 600;
+        }
+
+        .secondary {
+            background: white;
+            color: #3730a3;
+            border-color: #c7d2fe;
+        }
+
+        .success-button { background: #047857; border-color: #047857; }
+
+        .delete-button {
+            background: #dc2626;
+            border: 0;
+            padding: 8px 12px;
+            min-height: 36px;
+        }
+
+        .action-button {
+            border: 0;
+            padding: 8px 12px;
+            min-height: 36px;
+            margin-bottom: 7px;
+            white-space: nowrap;
+        }
+
+        .action-high { background: #b91c1c; }
+        .action-medium { background: #b45309; }
+        .action-low { background: #047857; }
+        .action-new { background: #4338ca; }
+
+        .table-wrap {
+            overflow-x: auto;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th, td {
+            text-align: left;
+            padding: 14px 16px;
+            border-bottom: 1px solid #edf0f6;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #f0f3fb;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .45px;
+        }
+
+        .status-risk { color: #dc2626; font-weight: 700; }
+        .status-medium { color: #b45309; font-weight: 700; }
+        .status-active { color: #15803d; font-weight: 700; }
+        .status-unknown { color: #64748b; font-weight: 700; }
+
+        .note {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .toolbar form { margin: 0; }
+
+        footer {
+            text-align: center;
+            padding: 28px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 600px) {
+            header { padding: 26px 20px; }
+            main { padding: 14px; }
+            .grid, .charts { grid-template-columns: 1fr; }
+            .card { padding: 18px; }
+            .toolbar > input, .toolbar > select { width: 100%; }
+            .toolbar .button, .toolbar form { flex: 1 1 100%; }
+            .toolbar form button { width: 100%; }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <h1>Customer Analytics Dashboard</h1>
+    <p>Customer segmentation, spending analysis and churn risk insights</p>
+</header>
+
+<main>
+    <h2>Business Overview</h2>
+
+    <section class="grid">
+        <div class="card">
+            <div class="metric">Total Customers</div>
+            <div class="number">{{ total_customers }}</div>
+        </div>
+
+        <div class="card">
+            <div class="metric">Customer Segments</div>
+            <div class="number">{{ total_segments }}</div>
+        </div>
+
+        <div class="card">
+            <div class="metric">Total Recorded Spending</div>
+            <div class="number">{{ "%.2f"|format(total_revenue) }}</div>
+        </div>
+
+        <div class="card">
+            <div class="metric">Average Customer Spending</div>
+            <div class="number">{{ "%.2f"|format(average_spending) }}</div>
+        </div>
+
+        <div class="card">
+            <div class="metric">Top Customer</div>
+            <div class="number">{{ top_customer_code }}</div>
+            <p>{{ "%.2f"|format(top_customer_spending) }} spending</p>
+        </div>
+
+        <div class="card">
+            <div class="metric">Largest Segment</div>
+            <div class="number">{{ largest_segment }}</div>
+        </div>
+    </section>
+
+    <h2>Churn Risk Overview</h2>
+
+    <section class="grid">
+        <div class="card">
+            <div class="metric">High-Risk Customers</div>
+            <div class="number">{{ at_risk_customers }}</div>
+        </div>
+
+        <div class="card">
+            <div class="metric">Low-Risk Customers</div>
+            <div class="number">{{ active_customers }}</div>
+        </div>
+
+        <div class="card">
+            <div class="metric">Medium-Risk Customers</div>
+            <div class="number">{{ medium_risk_customers }}</div>
+        </div>
+
+        <div class="card">
+            <div class="metric">New Customers</div>
+            <div class="number">{{ new_customers }}</div>
+        </div>
+    </section>
+
+    <p class="note">
+        Risk scores are illustrative rule-based scores out of 100, not
+        statistically calibrated churn probabilities. They use customer
+        activity and purchase information.
+    </p>
+
+    <h2>Customer Analytics</h2>
+
+    <section class="charts">
+        <div class="card chart-card">
+            <h3>Customers per Segment</h3>
+            <canvas id="segmentChart"></canvas>
+        </div>
+
+        <div class="card chart-card">
+            <h3>Segment Distribution</h3>
+            <canvas id="distributionChart"></canvas>
+        </div>
+
+        <div class="card chart-card">
+            <h3>Spending by Segment</h3>
+            <canvas id="spendingChart"></canvas>
+        </div>
+
+        <div class="card chart-card">
+            <h3>Churn Risk Classification</h3>
+            <canvas id="churnChart"></canvas>
+        </div>
+    </section>
+
+    <h2>Segment Performance &amp; Recommendations</h2>
+
+    <section class="grid">
+        {% for item in segment_insights %}
+        <div class="card segment-card">
+            <h3>{{ item.name }}</h3>
+            <div class="segment-stat">Customers: <strong>{{ item.count }}</strong></div>
+            <div class="segment-stat">Total spending: <strong>{{ "%.2f"|format(item.revenue) }}</strong></div>
+            <div class="segment-stat">Average spending: <strong>{{ "%.2f"|format(item.average_spending) }}</strong></div>
+            <div class="segment-stat">Average purchase frequency: <strong>{{ "%.2f"|format(item.average_frequency) }}</strong></div>
+            <div class="segment-stat">Average recency: <strong>{{ "%.1f"|format(item.average_recency) }} days</strong></div>
+
+            <div class="recommendation">
+                <strong>{{ item.recommendation_title }}</strong>
+                <p>{{ item.recommendation }}</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            No segment insights available. Add customers and run segmentation.
+        </div>
+        {% endfor %}
+    </section>
+
+    <h2>Customer Records</h2>
+
+    <div class="toolbar">
+        <input type="text" id="search" placeholder="Search customer code...">
+
+        <select id="segmentFilter">
+            <option value="">All Segments</option>
+            {% for segment_id, segment_name in segment_names.items() %}
+            <option value="{{ segment_name }}">{{ segment_name }}</option>
+            {% endfor %}
+        </select>
+
+        <select id="churnFilter">
+            <option value="">All Risk Levels</option>
+            <option value="High Risk">High Risk</option>
+            <option value="Medium Risk">Medium Risk</option>
+            <option value="Low Risk">Low Risk</option>
+            <option value="New Customer">New Customer</option>
+            <option value="Unclassified">Unclassified</option>
+        </select>
+
+        <a class="button secondary" href="/download-report">Download CSV Report</a>
+        <a class="button secondary" href="/download-pdf">Download PDF Report</a>
+        <a class="button" href="/predict">Assess Customer Risk</a>
+        <a class="button" href="/add-customer">+ Add Customer</a>
+        <a class="button" href="{{ url_for('add_purchase') }}">+ Add Purchase</a>
+
+        <form action="/run-segmentation" method="POST"
+              onsubmit="return confirm('Run customer segmentation for all customers now?');">
+            <button class="success-button" type="submit">
+                Run Customer Segmentation
+            </button>
+        </form>
+    </div>
+
+    <p class="note">
+        Recommended actions are guidance only. They do not send messages
+        automatically. Use Delete only when you intend to permanently remove
+        a customer and their related orders.
+    </p>
+
+    <div class="table-wrap">
+        <table id="customerTable">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Recency (days)</th>
+                    <th>Frequency</th>
+                    <th>Spending</th>
+                    <th>Segment</th>
+                    <th>Risk Status</th>
+                    <th>Risk Score</th>
+                    <th>Recommended Action</th>
+                    <th>Delete Record</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.customer_code }}</td>
+
+                    <td>
+                        {% if customer.frequency == 0 %}
+                            N/A
+                        {% else %}
+                            {{ customer.recency }}
+                        {% endif %}
+                    </td>
+
+                    <td>{{ customer.frequency }}</td>
+                    <td>{{ "%.2f"|format(customer.monetary) }}</td>
+                    <td>{{ customer.segment_name or "Not Yet Segmented" }}</td>
+
+                    <td class="{% if customer.churn_status == 'High Risk' %}status-risk{% elif customer.churn_status == 'Medium Risk' %}status-medium{% elif customer.churn_status == 'Low Risk' %}status-active{% else %}status-unknown{% endif %}">
+                        {{ customer.churn_status }}
+                    </td>
+
+                    <td>
+                        {% if customer.churn_probability is not none
+                              and customer.churn_probability == customer.churn_probability %}
+                            {{ customer.churn_probability }} / 100
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if customer.churn_status == 'High Risk' %}
+                            <button type="button"
+                                    class="action-button action-high"
+                                    onclick="showRecommendation('Contact this customer with a friendly re-engagement offer. No message has been sent.')">
+                                Contact Customer
+                            </button>
+                        {% elif customer.churn_status == 'Medium Risk' %}
+                            <button type="button"
+                                    class="action-button action-medium"
+                                    onclick="showRecommendation('Consider sending this customer a reminder. No message has been sent.')">
+                                Send Reminder
+                            </button>
+                        {% elif customer.churn_status == 'Low Risk' %}
+                            <button type="button"
+                                    class="action-button action-low"
+                                    onclick="showRecommendation('Continue regular engagement and reward repeat purchases.')">
+                                Maintain Engagement
+                            </button>
+                        {% elif customer.churn_status == 'New Customer' %}
+                            <button type="button"
+                                    class="action-button action-new"
+                                    onclick="showRecommendation('Consider a welcome message or first-purchase offer.')">
+                                Welcome Offer
+                            </button>
+                        {% else %}
+                            <button type="button"
+                                    class="action-button"
+                                    onclick="showRecommendation('Review this customer record before deciding on an action.')">
+                                Review Customer
+                            </button>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if customer.customer_id is defined and customer.customer_id %}
+                        <form method="POST" action="/delete-customer"
+                              onsubmit="return confirm('Permanently delete customer {{ customer.customer_code }} and their related orders? This cannot be undone.');">
+                            <input type="hidden" name="customer_id"
+                                   value="{{ customer.customer_id }}">
+                            <button type="submit" class="delete-button">
+                                Delete
+                            </button>
+                        </form>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9">No customer records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer>Customer Segmentation and Predictive Analytics System</footer>
+
+<script>
+    function showRecommendation(message) {
+        alert(message);
+    }
+
+    const segmentData = {{ segments | tojson }};
+    const segmentNames = {{ segment_names | tojson }};
+    const spendingData = {{ segment_spending | tojson }};
+
+    const highRisk = {{ at_risk_customers | tojson }};
+    const mediumRisk = {{ medium_risk_customers | tojson }};
+    const lowRisk = {{ active_customers | tojson }};
+    const newCustomers = {{ new_customers | tojson }};
+
+    const labels = Object.keys(segmentData).map(
+        key => segmentNames[key] || key
+    );
+
+    const counts = Object.values(segmentData);
+    const spending = Object.keys(segmentData).map(
+        key => spendingData[key] || 0
+    );
+
+    new Chart(document.getElementById("segmentChart"), {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{ label: "Customers", data: counts }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    new Chart(document.getElementById("distributionChart"), {
+        type: "doughnut",
+        data: {
+            labels: labels,
+            datasets: [{ data: counts }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    new Chart(document.getElementById("spendingChart"), {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{ label: "Total Spending", data: spending }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    new Chart(document.getElementById("churnChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["High Risk", "Medium Risk", "Low Risk", "New Customer"],
+            datasets: [{
+                data: [highRisk, mediumRisk, lowRisk, newCustomers]
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    const searchInput = document.getElementById("search");
+    const segmentFilter = document.getElementById("segmentFilter");
+    const churnFilter = document.getElementById("churnFilter");
+
+    function filterCustomers() {
+        const search = searchInput.value.toLowerCase();
+        const selectedSegment = segmentFilter.value;
+        const selectedRisk = churnFilter.value;
+
+        document.querySelectorAll("#customerTable tbody tr").forEach(row => {
+            if (row.cells.length < 9) return;
+
+            const code = row.cells[0].textContent.toLowerCase();
+            const segment = row.cells[4].textContent.trim();
+            const risk = row.cells[5].textContent.trim();
+
+            row.style.display =
+                code.includes(search) &&
+                (!selectedSegment || segment === selectedSegment) &&
+                (!selectedRisk || risk === selectedRisk)
+                    ? ""
+                    : "none";
+        });
+    }
+
+    searchInput.addEventListener("input", filterCustomers);
+    segmentFilter.addEventListener("change", filterCustomers);
+    churnFilter.addEventListener("change", filterCustomers);
+</script>
+</body>
+</html>

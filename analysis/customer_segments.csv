@@ -1,0 +1,11 @@
+customer_id,customer_code,last_order_date,frequency,monetary,recency,segment,segment_name
+1,C001,2026-04-20,3,3000.0,197,1,High-Value Customers
+2,C002,2026-05-12,2,850.0,175,2,Low-Activity Customers
+3,C003,2026-06-18,2,550.0,138,2,Low-Activity Customers
+4,C004,2026-02-10,1,1000.0,266,2,Low-Activity Customers
+5,C005,2026-06-25,3,1850.0,131,1,High-Value Customers
+6,C006,2026-03-15,1,750.0,233,2,Low-Activity Customers
+8,C008,2026-05-05,1,300.0,182,2,Low-Activity Customers
+9,C009,2026-06-10,1,700.0,146,2,Low-Activity Customers
+13,Sunny,2026-10-27,1,1000.0,7,0,Regular Customers
+14,Wilson,2026-08-15,1,1500.0,80,0,Regular Customers

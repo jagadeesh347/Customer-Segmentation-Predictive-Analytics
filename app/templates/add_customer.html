@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Customer</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 24px; font-family: Arial, sans-serif;
+            background: #f5f7fc; color: #172033;
+        }
+        .card {
+            max-width: 520px; margin: 45px auto; padding: 30px;
+            background: white; border: 1px solid #e5eaf3;
+            border-radius: 16px; box-shadow: 0 8px 28px #17255410;
+        }
+        h1 { margin-top: 0; }
+        label { display: block; margin-top: 18px; font-weight: bold; }
+        input {
+            width: 100%; padding: 12px; margin-top: 8px;
+            border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px;
+        }
+        button, a {
+            display: inline-block; margin-top: 22px; padding: 12px 16px;
+            border: 0; border-radius: 8px; background: #4f46e5;
+            color: white; text-decoration: none; cursor: pointer; font-size: 14px;
+        }
+        .message { color: #15803d; }
+        .error { color: #dc2626; }
+        .back { background: #334155; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Add New Customer</h1>
+        <p>Enter the customer's basic details to save them in MySQL.</p>
+
+        {% if message %}<p class="message">{{ message }}</p>{% endif %}
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+        <form method="POST">
+            <label for="customer_code">Customer Code</label>
+            <input id="customer_code" name="customer_code"
+                   placeholder="e.g. C011" maxlength="20" required>
+
+            <label for="signup_date">Signup Date</label>
+            <input id="signup_date" name="signup_date" type="date"
+                   max="{{ today }}">
+
+            <button type="submit">Save Customer</button>
+        </form>
+
+        <a class="back" href="/">Back to Dashboard</a>
+    </div>
+</body>
+</html>
